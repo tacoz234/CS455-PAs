@@ -1,0 +1,27 @@
+
+Processing PCAP file 'trafficUdpTcp.pcap'
+
+magic number A1B2C3D4
+major version 2
+minor version 4
+GMT to local correction 0 seconds
+accuracy of timestamps 0
+Cut-off max length of captured packets 262144
+data link type 1
+
+PktNum     Time Stamp OrgLen / Captrd Source               Destination          Protocol info
+     1       0.000000     66 /     66 10.0.100.1           224.0.0.9            UDP      IP_HDR{ Len=20 incl. 0 options bytes} UDP    32 Bytes. Port   520 (  route) ->   520 (  route)  AppData=   24
+     2      10.391550     86 /     86 10.0.100.1           224.0.0.9            UDP      IP_HDR{ Len=20 incl. 0 options bytes} UDP    52 Bytes. Port   520 (  route) ->   520 (  route)  AppData=   44
+     3      35.174211     95 /     95 192.168.154.134      192.168.154.2        UDP      IP_HDR{ Len=20 incl. 0 options bytes} UDP    61 Bytes. Port 35717 (   *** ) ->    53 ( domain)  AppData=   53
+     4      35.204842    253 /    253 192.168.154.2        192.168.154.134      UDP      IP_HDR{ Len=20 incl. 0 options bytes} UDP   219 Bytes. Port    53 ( domain) -> 35717 (   *** )  AppData=  211
+     5      36.280792     74 /     74 192.168.154.134      23.221.72.202        TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=40 (Options 20 bytes) Port 38686 (   *** ) ->    80 (   http) [SYN                 ] Seq=3244181315                Rwnd=64240 AppData=    0
+     6      36.307205     60 /     60 23.221.72.202        192.168.154.134      TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=24 (Options  4 bytes) Port    80 (   http) -> 38686 (   *** ) [SYN     ACK         ] Seq= 609555272 Ack=3244181316 Rwnd=64240 AppData=    0
+     7      36.307294     54 /     54 192.168.154.134      23.221.72.202        TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=20 (Options  0 bytes) Port 38686 (   *** ) ->    80 (   http) [        ACK         ] Seq=3244181316 Ack= 609555273 Rwnd=64240 AppData=    0
+     8      36.308766    350 /    350 192.168.154.134      23.221.72.202        TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=20 (Options  0 bytes) Port 38686 (   *** ) ->    80 (   http) [    PSH ACK         ] Seq=3244181316 Ack= 609555273 Rwnd=64240 AppData=  296
+     9      38.481446    180 /    180 192.168.154.134      52.38.5.11           TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=20 (Options  0 bytes) Port 59320 (   *** ) ->   443 (  https) [    PSH ACK         ] Seq=3643142713 Ack=1758084622 Rwnd=62780 AppData=  126
+    10      38.607184    157 /    157 192.168.154.2        192.168.154.134      UDP      IP_HDR{ Len=20 incl. 0 options bytes} UDP   123 Bytes. Port    53 ( domain) -> 37873 (   *** )  AppData=  115
+    11      38.832622    634 /    634 192.168.154.134      52.38.5.11           TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=20 (Options  0 bytes) Port 59324 (   *** ) ->   443 (  https) [    PSH ACK         ] Seq=2835135515 Ack=1903247181 Rwnd=62780 AppData=  580
+    12      39.266294     95 /     95 192.168.154.134      192.168.154.2        UDP      IP_HDR{ Len=20 incl. 0 options bytes} UDP    61 Bytes. Port 37831 (   *** ) ->    53 ( domain)  AppData=   53
+    13     106.036080     54 /     54 192.168.154.134      172.217.13.66        TCP      IP_HDR{ Len=20 incl. 0 options bytes} TCPhdr=20 (Options  0 bytes) Port 40156 (   *** ) ->   443 (  https) [        ACK         ] Seq=1825878953 Ack=1050617532 Rwnd=62780 AppData=    0
+
+Reached end of PCAP file 'trafficUdpTcp.pcap'

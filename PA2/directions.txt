@@ -1,0 +1,103 @@
+Traffic Analysis Phase 2
+Analysis of TCP and UDP Headers
+This assignment is to be completed by each Individual Student.
+No Teaming here
+
+ 
+
+Objective:
+Your main in p2.c should open, read, then display the contents of a .pcap file that contains an unspecified number of captured packets. The output must follow a strict format (it will be diffed against the expected output. Follow the examples shown in the sample runs illustrated below.
+
+PCAP File Format:   
+https://wiki.wireshark.org/Development/LibpcapFileFormatLinks to an external site.
+ 
+
+Notice that the output of printIPinfo() :  You display the IP header length and the number of option bytes as well. Also, at the end of the line of an IP packet,  (i.e. after any UDP, TCP, or ICMP information) the size of AppData value is displayed using "%5u"
+
+In addition, UDP and TCP information is now printed in some specific format using two new required functions:
+printUDPinfo
+printTCPinfo
+
+UDP Information to print:
+Total Length of the UDP datagram in bytes.
+Source and Destination ports in numeric using "%5u"  .
+Source and Destination port names using "(%7s)" format, or "(   *** )"   if port has no standard name.
+Should expect any of the many many service names, so use a library function to convert port numbers into service names.
+
+TCP Information to print:
+TCP Header Length in bytes, and how many of these bytes are TCP header options.
+Source & Destination ports numerical & names as described  in UDP above.
+Flags as "[SYN PSH ACK FIN RST ]" in that order. If a flag is not set, print 4 spaces instead,
+as in [SYN ____ACK FIN ____] .
+Sequence number using "%10u".
+When applicable, the Acknowledgement number using "%10u". Otherwise, print 15 spaces.
+The receive window size using "%5hu".
+Source  Code:      
+I recommend you use this make file for compilation and testing:  makefileDownload makefile
+Skeleton for mypcap.h       mypcap-SKELETON.hDownload mypcap-SKELETON.h
+Remember to update the file and remove "-SKELETON" from its name
+ 
+Sample Runs:  Your output must match the provided output using diff -s
+Sample Run 5:            ./p2   trafficMixed.pcap        >    studentOutput5.txt
+Input File:                   trafficMixed.pcapDownload trafficMixed.pcap
+Expected Output:     output5.txtDownload output5.txt
+
+Sample Run 6:           ./p2   trafficArpIcmp2.pcap   >   studentOutput6.txt
+Input File:                   trafficArpIcmp2.pcapDownload trafficArpIcmp2.pcap
+Expected Output:      output6.txtDownload output6.txt
+
+Additional traffic and expected output:
+Sample Run 2:  trafficUdpTcp.pcap Download trafficUdpTcp.pcap        output2.txt Download output2.txt   
+Sample Run 4:  trafficIPoptions.pcap Download trafficIPoptions.pcap    output4.txt Download output4.txt               
+Submission:
+Upload ONLY the following 3 files:
+p2.c                              mypcap.h                                mypcap.c   
+
+Plus one screenshot showing you running "make && make test"  which also compares  your output files versus the expected output.
+
+Plus a PDF where you explain any changes in your mypcap.c you may had to maKe in order to fix the runtime errors.
+ 
+
+Grading Policy:
+If your code does not compile (i.e. generates errors):  Zero credit will be awarded.
+
+If your code  compiles with warnings:   5 points are deducted
+
+If your code runs but crashes during testing (e.g. segmentation fault and stack smashing, etc): Zero credit will be awarded.
+
+If your output files do not match the expected output: No credit will be awarded No promises of any partial credit, though.
+Therefore, you should develop incrementally and test, before you develop the next feature.
+ 
+
+Late Submission:
+Less than 12 hours late:  no penalty. My advise: Do  not plan to use these 2 hours.
+
+12 hours to less than 24 hours late:  5 points penalty.
+
+24+ hours to less than 48 hours late:  15 points penalty.
+No submissions are accepted if 48 hours have passed after the due date.
+ 
+
+PA-02 Rubric
+PA-02 Rubric
+Criteria	Comments	Points
+All deliverable items submitted.
+view longer description
+Comment
+/5 pts
+test2: Process trafficUdpTcp.pcap
+Comment
+/15 pts
+test4: Process trafficIPoptions.pcap
+Comment
+/5 pts
+test5: Process trafficMixed.pcap
+Comment
+/15 pts
+test6: Process trafficArpIcmp2.pcap
+Comment
+/10 pts
+Deductions:
+view longer description
+Comment
+/0 pts
