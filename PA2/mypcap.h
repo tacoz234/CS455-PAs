@@ -176,9 +176,15 @@ typedef struct __attribute__((__packed__)) {
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
 typedef struct __attribute__((__packed__)) {
-
-  // Define the fields of this structure.
-  // Field names must be meaningful, and must all have the prefix tcp_
+  uint16_t tcp_srcPort; // Source Port
+  uint16_t tcp_dstPort; // Destination Port
+  uint32_t tcp_seqNum;  // Sequence Number
+  uint32_t tcp_ackNum;  // Acknowledgment Number
+  uint16_t
+      tcp_hlenFlags;   // Data Offset (4bits) : Reserved (6bits) : Flags (6bits)
+  uint16_t tcp_window; // Window Size
+  uint16_t tcp_checksum; // Checksum
+  uint16_t tcp_urgPtr;   // Urgent Pointer
 
 } tcpHdr_t;
 
@@ -194,9 +200,10 @@ typedef struct __attribute__((__packed__)) {
     +--------+--------+--------+--------+
 */
 typedef struct __attribute__((__packed__)) {
-
-  // Define the fields of this structure.
-  // Field names must be meaningful, and must all have the prefix udp_
+  uint16_t udp_srcPort;  // Source Port
+  uint16_t udp_dstPort;  // Destination Port
+  uint16_t udp_length;   // Length (header + data)
+  uint16_t udp_checksum; // Checksum
 
 } udpHdr_t;
 
