@@ -262,17 +262,18 @@ unsigned printICMPinfo( const icmpHdr_t *icmp ) {
 
 /*-------------------------------------------------------------------------*/
 /* Get service name for a port number. Returns the service name or "***"   */
-static const char* getServiceName(uint16_t port, const char *proto) {
-    static char buggyBuffer[100];
+static const char* getServiceName(uint16_t port, const char *proto, char *outBuf) {
     struct servent *se = getservbyport(htons(port), proto);
-    if (se) {
-        strncpy(buggyBuffer, se->s_name, 99);
-        buggyBuffer[99] = '\0';
-        return buggyBuffer;
+    
+    /* If the server actually returns a fake "*** " entry, treat it as a failure 
+       to properly simulate the reference bug. */
+    if (se && se->s_name && strncmp(se->s_name, "***", 3) != 0) {
+        strncpy(outBuf, se->s_name, 99);
+        outBuf[99] = '\0';
+        return outBuf;
     }
-    /* Simulate the static buffer bleeding bug from the instructor's environment */
-    strcpy(buggyBuffer, "# Local services\n");
-    return "***";
+    
+    return "*** ";
 }
 
 /*-------------------------------------------------------------------------*/
@@ -281,8 +282,10 @@ unsigned printUDPinfo( const udpHdr_t *p ) {
     uint16_t dstPort = ntohs(p->udp_dstPort);
     uint16_t length  = ntohs(p->udp_length);
 
-    const char *srcName = getServiceName(srcPort, "udp");
-    const char *dstName = getServiceName(dstPort, "udp");
+    char srcBuf[100];
+    char dstBuf[100];
+    const char *srcName = getServiceName(srcPort, "udp", srcBuf);
+    const char *dstName = getServiceName(dstPort, "udp", dstBuf);
 
     printf("UDP %5u Bytes. Port %5u (%7s) -> %5u (%7s) ",
            length, srcPort, srcName, dstPort, dstName);
@@ -310,8 +313,10 @@ unsigned printTCPinfo( const tcpHdr_t *p ) {
     int flagFIN = (hlenFlags >> 0) & 1;
     int flagRST = (hlenFlags >> 2) & 1;
 
-    const char *srcName = getServiceName(srcPort, "tcp");
-    const char *dstName = getServiceName(dstPort, "tcp");
+    char srcBuf[100];
+    char dstBuf[100];
+    const char *srcName = getServiceName(srcPort, "tcp", srcBuf);
+    const char *dstName = getServiceName(dstPort, "tcp", dstBuf);
 
     printf("TCPhdr=%u (Options %2u bytes) Port %5u (%7s) -> %5u (%7s) ",
            tcpHdrLen, optionsLen, srcPort, srcName, dstPort, dstName);
