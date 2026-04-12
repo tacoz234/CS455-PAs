@@ -12,6 +12,10 @@
 
 /*-----------------   GLOBAL   VARIABLES   --------------------------------*/
 FILE       *pcapInput  =  NULL ;        // The input PCAP file
+FILE       *pcapOutput =  NULL ;        // The output PCAP file
+arpmap_t    myARPmap[ MAXARPMAP ] ;    // List of my IPs, their MACs
+int         mapSize = 0;               // Number of mapping pairs read
+unsigned    countMine = 0;             // Number of packets targeting mine
 bool        bytesOK ;   // Does the capturer's byte ordering same as mine?
                         // Affects the global PCAP header and each packet's header
 
@@ -49,6 +53,7 @@ void errorExit( char *str )
 void cleanUp( )
 {
     if ( pcapInput  )  fclose ( pcapInput  ) ;
+    if ( pcapOutput )  fclose ( pcapOutput ) ;
 }
 
 /*-------------------------------------------------------------------------*/
@@ -353,4 +358,260 @@ char *ipToStr( const IPv4addr ip , char *ipStr ) {
     addr.s_addr = ip.ip;
     strcpy(ipStr, inet_ntoa(addr));
     return ipStr;
+}
+
+/* ***************************** */
+/*          PROJECT 3            */
+/* ***************************** */
+
+/*-------------------------------------------------------------------------*/
+int writePCAPhdr( char *fname , pcap_hdr_t *p )
+{
+    if ( !fname || !p ) return -1;
+    pcapOutput = fopen( fname , "wb" );
+    if ( !pcapOutput ) return -1;
+
+    pcap_hdr_t pCopy = *p;
+    if ( !bytesOK ) 
+    {
+        pCopy.version_major = swap16( pCopy.version_major );
+        pCopy.version_minor = swap16( pCopy.version_minor );
+        pCopy.thiszone      = (int32_t)swap32( (uint32_t)pCopy.thiszone );
+        pCopy.sigfigs       = swap32( pCopy.sigfigs );
+        pCopy.snaplen       = swap32( pCopy.snaplen );
+        pCopy.network       = swap32( pCopy.network );
+    }
+
+    if ( fwrite( &pCopy , sizeof( pcap_hdr_t ) , 1 , pcapOutput ) != 1 )
+    {
+        fclose( pcapOutput );
+        return -1;
+    }
+    return 0;
+}
+
+/*-------------------------------------------------------------------------*/
+int readARPmap( char *arpDB )
+{
+    FILE *f = fopen( arpDB , "r" );
+    if ( !f ) return -1;
+
+    char ipStr[100], macStr[100];
+    mapSize = 0;
+    while ( mapSize < MAXARPMAP && fscanf( f , "%s %s" , ipStr , macStr ) == 2 )
+    {
+        struct in_addr addr;
+        if ( inet_aton( ipStr , &addr ) == 0 ) continue;
+        myARPmap[mapSize].ip = addr.s_addr;
+
+        unsigned int m[6];
+        if ( sscanf( macStr , "%x:%x:%x:%x:%x:%x" , &m[0], &m[1], &m[2], &m[3], &m[4], &m[5] ) == 6 )
+        {
+            for ( int i = 0 ; i < 6 ; i++ )
+                myARPmap[mapSize].mac[i] = (uint8_t)m[i];
+            mapSize++;
+        }
+    }
+    fclose( f );
+    return mapSize;
+}
+
+/*-------------------------------------------------------------------------*/
+uint16_t inet_checksum( void * data , uint16_t lenBytes )
+{
+    uint32_t sum = 0;
+    uint16_t *ptr = (uint16_t *) data;
+
+    while ( lenBytes > 1 )
+    {
+        sum += *ptr++;
+        lenBytes -= 2;
+    }
+
+    if ( lenBytes == 1 )
+    {
+        sum += *(uint8_t *)ptr;
+    }
+
+    while ( sum >> 16 )
+        sum = ( sum & 0xFFFF ) + ( sum >> 16 );
+
+    return (uint16_t) ~sum;
+}
+
+/*-------------------------------------------------------------------------*/
+bool myIP( IPv4addr someIP , uint8_t **ptr )
+{
+    for ( int i = 0 ; i < mapSize ; i++ )
+    {
+        if ( myARPmap[i].ip == someIP.ip )
+        {
+            if ( ptr ) *ptr = myARPmap[i].mac;
+            return true;
+        }
+    }
+    if ( ptr ) *ptr = NULL;
+    return false;
+}
+
+/*-------------------------------------------------------------------------*/
+bool myMAC( uint8_t someMAC[] )
+{
+    // Check broadcast
+    bool isBroadcast = true;
+    for ( int i = 0 ; i < 6 ; i++ )
+        if ( someMAC[i] != 0xFF ) { isBroadcast = false; break; }
+    if ( isBroadcast ) return true;
+
+    for ( int i = 0 ; i < mapSize ; i++ )
+    {
+        bool match = true;
+        for ( int j = 0 ; j < 6 ; j++ )
+        {
+            if ( myARPmap[i].mac[j] != someMAC[j] )
+            {
+                match = false;
+                break;
+            }
+        }
+        if ( match ) return true;
+    }
+    return false;
+}
+
+/*-------------------------------------------------------------------------*/
+void processRequestPacket( packetHdr_t *pktHdr, uint8_t ethFrame[] )
+{
+    etherHdr_t *ethHdr = (etherHdr_t *) ethFrame;
+    char macBuf[MAXMACADDRLEN];
+    macToStr( ethHdr->eth_dstMAC , macBuf );
+
+    bool mine = myMAC( ethHdr->eth_dstMAC );
+    printf( "   Dest MAC: %s (%s)\n" , macBuf , mine ? "Mine" : "Not Mine" );
+
+    if ( !mine ) return;
+
+    uint16_t ethType = ntohs( ethHdr->eth_type );
+    bool shouldRespond = false;
+    uint8_t replyFrame[MAXFRAMESZ];
+    int replyLen = 0;
+
+    if ( ethType == PROTO_ARP )
+    {
+        arpMsg_t *arpReq = (arpMsg_t *)( ethFrame + sizeof( etherHdr_t ) );
+        uint8_t *myMacPtr;
+        if ( ntohs( arpReq->arp_oper ) == ARPREQUEST && myIP( arpReq->arp_tpa , &myMacPtr ) )
+        {
+            shouldRespond = true;
+            countMine++;
+
+            // Prepare Reply
+            replyLen = pktHdr->incl_len;
+            if ( replyLen > MAXFRAMESZ ) replyLen = MAXFRAMESZ;
+            memcpy( replyFrame , ethFrame , replyLen );
+
+            etherHdr_t *replyEth = (etherHdr_t *) replyFrame;
+            arpMsg_t *replyArp = (arpMsg_t *)( replyFrame + sizeof( etherHdr_t ) );
+
+            // Ethernet Header
+            memcpy( replyEth->eth_dstMAC , ethHdr->eth_srcMAC , 6 );
+            memcpy( replyEth->eth_srcMAC , myMacPtr , 6 );
+            replyEth->eth_type = ethHdr->eth_type;
+
+            // ARP Message
+            replyArp->arp_htype = arpReq->arp_htype;
+            replyArp->arp_ptype = arpReq->arp_ptype;
+            replyArp->arp_hlen  = arpReq->arp_hlen;
+            replyArp->arp_plen  = arpReq->arp_plen;
+            replyArp->arp_oper  = htons( ARPREPLY );
+            memcpy( replyArp->arp_sha , myMacPtr , 6 );
+            replyArp->arp_spa   = arpReq->arp_tpa;
+            memcpy( replyArp->arp_tha , ethHdr->eth_srcMAC , 6 );
+            replyArp->arp_tpa   = arpReq->arp_spa;
+        }
+    }
+    else if ( ethType == PROTO_IPv4 )
+    {
+        ipv4Hdr_t *ipReq = (ipv4Hdr_t *)( ethFrame + sizeof( etherHdr_t ) );
+        uint8_t *myMacPtr;
+        if ( ipReq->ip_proto == PROTO_ICMP && myIP( ipReq->ip_dstIP , &myMacPtr ) )
+        {
+            int ipHdrLen = ( ipReq->ip_verHlen & 0x0F ) * 4;
+            icmpHdr_t *icmpReq = (icmpHdr_t *)( (uint8_t *)ipReq + ipHdrLen );
+            if ( icmpReq->icmp_type == ICMP_ECHO_REQUEST )
+            {
+                shouldRespond = true;
+                countMine++;
+
+                // Prepare Reply
+                replyLen = pktHdr->incl_len;
+                if ( replyLen > MAXFRAMESZ ) replyLen = MAXFRAMESZ;
+                memcpy( replyFrame , ethFrame , replyLen );
+
+                etherHdr_t *replyEth = (etherHdr_t *) replyFrame;
+                ipv4Hdr_t *replyIp = (ipv4Hdr_t *)( replyFrame + sizeof( etherHdr_t ) );
+                icmpHdr_t *replyIcmp = (icmpHdr_t *)( (uint8_t *)replyIp + ipHdrLen );
+
+                // Ethernet Header
+                memcpy( replyEth->eth_dstMAC , ethHdr->eth_srcMAC , 6 );
+                memcpy( replyEth->eth_srcMAC , myMacPtr , 6 );
+
+                // IP Header
+                static uint16_t nextId = 1000;
+                replyIp->ip_srcIP = ipReq->ip_dstIP;
+                replyIp->ip_dstIP = ipReq->ip_srcIP;
+                replyIp->ip_id    = htons( nextId++ );
+                replyIp->ip_ttl   = 64; // Default TTL
+                replyIp->ip_flagsFrag = htons( 0x4000 ); // Do Not Fragment
+                replyIp->ip_hdrChk = 0;
+                replyIp->ip_hdrChk = htons( inet_checksum( replyIp , ipHdrLen ) );
+
+                // ICMP Header
+                replyIcmp->icmp_type = ICMP_ECHO_REPLY;
+                replyIcmp->icmp_check = 0;
+                int icmpLen = ntohs( ipReq->ip_totLen ) - ipHdrLen;
+                replyIcmp->icmp_check = htons( inet_checksum( replyIcmp , icmpLen ) );
+            }
+        }
+    }
+
+    if ( shouldRespond )
+    {
+        packetHdr_t replyHdr = *pktHdr;
+        uint32_t delta = microSec ? 30 : 30000;
+        uint32_t limit = microSec ? 1000000 : 1000000000;
+
+        replyHdr.ts_usec += delta;
+        if ( replyHdr.ts_usec >= limit )
+        {
+            replyHdr.ts_sec++;
+            replyHdr.ts_usec -= limit;
+        }
+        replyHdr.incl_len = replyLen;
+        replyHdr.orig_len = replyLen;
+
+        packetHdr_t sPktHdr = *pktHdr;
+        packetHdr_t sReplyHdr = replyHdr;
+
+        if ( !bytesOK ) 
+        {
+            sPktHdr.ts_sec   = swap32( sPktHdr.ts_sec );
+            sPktHdr.ts_usec  = swap32( sPktHdr.ts_usec );
+            sPktHdr.incl_len = swap32( sPktHdr.incl_len );
+            sPktHdr.orig_len = swap32( sPktHdr.orig_len );
+
+            sReplyHdr.ts_sec   = swap32( sReplyHdr.ts_sec );
+            sReplyHdr.ts_usec  = swap32( sReplyHdr.ts_usec );
+            sReplyHdr.incl_len = swap32( sReplyHdr.incl_len );
+            sReplyHdr.orig_len = swap32( sReplyHdr.orig_len );
+        }
+
+        // Write Request Duplicate
+        fwrite( &sPktHdr , sizeof( packetHdr_t ) , 1 , pcapOutput );
+        fwrite( ethFrame , pktHdr->incl_len , 1 , pcapOutput );
+
+        // Write Reply
+        fwrite( &sReplyHdr , sizeof( packetHdr_t ) , 1 , pcapOutput );
+        fwrite( replyFrame , replyLen , 1 , pcapOutput );
+    }
 }
