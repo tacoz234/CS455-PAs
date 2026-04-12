@@ -1,23 +1,29 @@
-1. An Ethernet frame is targeting your machine if its destination MAC address matches one of your machine's MAC addresses (defined in the ARP mapping) or if it is the Ethernet broadcast address (ff:ff:ff:ff:ff:ff).
+Question 1: How do you decide that an Ethernet frame is targeting your machine?
+An Ethernet frame is considered to be targeting my machine if its destination MAC address matches any of my machine's MAC addresses (as defined in the ARP mapping file) or if the destination MAC address is the Ethernet broadcast address (ff:ff:ff:ff:ff:ff).
 
-2. To determine if it's an ARP request for your machine:
-   - The Ethernet protocol type must be 0x0806 (ARP).
-   - The ARP operation field (arp_oper) must be 1 (ARPREQUEST).
-   - The target protocol address (arp_tpa) must match one of your machine's IP addresses.
+Question 2: Next, how do you determine that it's an ARP request asking about your machine's MAC address?
+To identify such a packet:
+1. The Ethernet Type field must be 0x0806 (ARP).
+2. The ARP Operation field must be 1 (ARP Request).
+3. The Target Protocol Address (TPA) in the ARP message must match one of my machine's IP addresses.
 
-3. To determine if it's a proper ICMP echo request targeting your machine:
-   - The Ethernet protocol type must be 0x0800 (IPv4).
-   - The destination IP address (ip_dstIP) must match one of your machine's IP addresses.
-   - The IPv4 protocol field must be 1 (ICMP).
-   - The ICMP type field must be 8 (ICMP_ECHO_REQUEST).
+Question 3: How do you determine it's a proper ICMP echo request targeting your machine?
+To identify such a packet:
+1. The Ethernet Type field must be 0x0800 (IPv4).
+2. The IP Destination Address must match one of my machine's IP addresses.
+3. The IP Protocol field must be 1 (ICMP).
+4. The ICMP Type field must be 8 (Echo Request).
+5. The ICMP Code field should be 0.
 
-4. The following fields of the outgoing IP header need to be modified for an ICMP Echo Reply:
-   - source IP (set to your IP)
-   - destination IP (set to original sender's IP)
-   - identification (start at 1000 and increment)
-   - flags (set to "Do Not Fragment")
-   - header checksum (must be recalculated)
+Question 4: Which fields of the outgoing packet's IP header need to be modified?
+When preparing an ICMP Echo Reply, the following IP header fields must be modified:
+1. Source IP: Set to the IP address of my machine (what was the destination IP in the request).
+2. Destination IP: Set to the original sender's IP address (what was the source IP in the request).
+3. Identification: Must be set to 1000 initially and incremented for each successive generated packet.
+4. Flags: The "Do Not Fragment" (DF) bit must be set.
+5. Header Checksum: Must be recalculated because the addresses, ID, and flags have changed.
 
-5. Both checksums need to be recalculated.
-   - The IP header checksum must be recalculated because fields like the source/destination IP, identification, and flags have changed.
-   - The ICMP message checksum must be recalculated because the message type changed from Echo Request (8) to Echo Reply (0).
+Question 5: Do you need to recalculate the checksum of the IP header? of the ICMP message? or both?
+Both checksums must be recalculated:
+1. IP Header Checksum: Must be recalculated because multiple fields in the IP header (Source IP, Destination IP, ID, and Flags) have been modified.
+2. ICMP Checksum: Must be recalculated because the ICMP message Type has changed from 8 (Echo Request) to 0 (Echo Reply). Since the checksum covers the entire ICMP message, any change in the header fields requires a full recalculation.
