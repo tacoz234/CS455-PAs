@@ -1,0 +1,23 @@
+1. An Ethernet frame is targeting your machine if its destination MAC address matches one of your machine's MAC addresses (defined in the ARP mapping) or if it is the Ethernet broadcast address (ff:ff:ff:ff:ff:ff).
+
+2. To determine if it's an ARP request for your machine:
+   - The Ethernet protocol type must be 0x0806 (ARP).
+   - The ARP operation field (arp_oper) must be 1 (ARPREQUEST).
+   - The target protocol address (arp_tpa) must match one of your machine's IP addresses.
+
+3. To determine if it's a proper ICMP echo request targeting your machine:
+   - The Ethernet protocol type must be 0x0800 (IPv4).
+   - The destination IP address (ip_dstIP) must match one of your machine's IP addresses.
+   - The IPv4 protocol field must be 1 (ICMP).
+   - The ICMP type field must be 8 (ICMP_ECHO_REQUEST).
+
+4. The following fields of the outgoing IP header need to be modified for an ICMP Echo Reply:
+   - source IP (set to your IP)
+   - destination IP (set to original sender's IP)
+   - identification (start at 1000 and increment)
+   - flags (set to "Do Not Fragment")
+   - header checksum (must be recalculated)
+
+5. Both checksums need to be recalculated.
+   - The IP header checksum must be recalculated because fields like the source/destination IP, identification, and flags have changed.
+   - The ICMP message checksum must be recalculated because the message type changed from Echo Request (8) to Echo Reply (0).
