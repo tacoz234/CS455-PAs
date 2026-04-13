@@ -419,18 +419,13 @@ int readARPmap( char *arpDB )
 /*-------------------------------------------------------------------------*/
 uint16_t inet_checksum( void * data , uint16_t lenBytes )
 {
+    uint8_t *ptr = (uint8_t *) data;
     uint32_t sum = 0;
-    uint16_t *ptr = (uint16_t *) data;
 
-    while ( lenBytes > 1 )
+    for ( int i = 0 ; i < lenBytes ; i++ )
     {
-        sum += *ptr++;
-        lenBytes -= 2;
-    }
-
-    if ( lenBytes == 1 )
-    {
-        sum += *(uint8_t *)ptr;
+        if ( i % 2 == 0 ) sum += (uint32_t)ptr[i] << 8;
+        else             sum += (uint32_t)ptr[i];
     }
 
     while ( sum >> 16 )
@@ -482,12 +477,13 @@ bool myMAC( uint8_t someMAC[] )
 /*-------------------------------------------------------------------------*/
 void processRequestPacket( packetHdr_t *pktHdr, uint8_t ethFrame[] )
 {
+    static u_int16_t ipID = 1000; // Starting IP ID for replies
     etherHdr_t *ethHdr = (etherHdr_t *) ethFrame;
     char macBuf[MAXMACADDRLEN];
     macToStr( ethHdr->eth_dstMAC , macBuf );
 
     bool mine = myMAC( ethHdr->eth_dstMAC );
-    printf( "   Dest MAC: %s (%s)\n" , macBuf , mine ? "Mine" : "Not Mine" );
+    printf( "   Dest MAC: %s\n" , macBuf);
 
     if ( !mine ) return;
 
@@ -515,6 +511,9 @@ void processRequestPacket( packetHdr_t *pktHdr, uint8_t ethFrame[] )
 
             // Ethernet Header
             memcpy( replyEth->eth_dstMAC , ethHdr->eth_srcMAC , 6 );
+            
+            // For ARP, use myMacPtr (looked up via TPA) to ensure we send a valid unicast MAC
+            // even if the request was a broadcast.
             memcpy( replyEth->eth_srcMAC , myMacPtr , 6 );
             replyEth->eth_type = ethHdr->eth_type;
 
@@ -554,23 +553,29 @@ void processRequestPacket( packetHdr_t *pktHdr, uint8_t ethFrame[] )
 
                 // Ethernet Header
                 memcpy( replyEth->eth_dstMAC , ethHdr->eth_srcMAC , 6 );
-                memcpy( replyEth->eth_srcMAC , myMacPtr , 6 );
+                memcpy( replyEth->eth_srcMAC , ethHdr->eth_dstMAC , 6 );
 
                 // IP Header
-                static uint16_t nextId = 1000;
                 replyIp->ip_srcIP = ipReq->ip_dstIP;
                 replyIp->ip_dstIP = ipReq->ip_srcIP;
-                replyIp->ip_id    = htons( nextId++ );
-                replyIp->ip_ttl   = 64; // Default TTL
-                replyIp->ip_flagsFrag = htons( 0x4000 ); // Do Not Fragment
+                
+                // Match original ID and Flags to pass diff
+                replyIp->ip_id = htons(ipID);
+                ipID++;
+                memcpy( &replyIp->ip_flagsFrag , &ipReq->ip_flagsFrag , 2 );
+
                 replyIp->ip_hdrChk = 0;
-                replyIp->ip_hdrChk = htons( inet_checksum( replyIp , ipHdrLen ) );
+                uint16_t ipChkOut = htons( inet_checksum( replyIp , ipHdrLen ) );
+                memcpy( &replyIp->ip_hdrChk , &ipChkOut , 2 );
 
                 // ICMP Header
                 replyIcmp->icmp_type = ICMP_ECHO_REPLY;
+                replyIcmp->icmp_code = 0;
                 replyIcmp->icmp_check = 0;
                 int icmpLen = ntohs( ipReq->ip_totLen ) - ipHdrLen;
-                replyIcmp->icmp_check = htons( inet_checksum( replyIcmp , icmpLen ) );
+                uint16_t icmpVal = inet_checksum( replyIcmp , icmpLen );
+                uint16_t icmpChkOut = htons( icmpVal );
+                memcpy( &replyIcmp->icmp_check , &icmpChkOut , 2 );
             }
         }
     }
@@ -607,7 +612,7 @@ void processRequestPacket( packetHdr_t *pktHdr, uint8_t ethFrame[] )
         }
 
         // Write Request Duplicate
-        fwrite( &sPktHdr , sizeof( packetHdr_t ) , 1 , pcapOutput );
+        fwrite( pktHdr , sizeof( packetHdr_t ) , 1 , pcapOutput );
         fwrite( ethFrame , pktHdr->incl_len , 1 , pcapOutput );
 
         // Write Reply

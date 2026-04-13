@@ -241,9 +241,10 @@ typedef struct {
     uint8_t     mac[ ETHERNETHLEN ] ;
 } arpmap_t ;
 
-// Possible Future Extension
-// void    printIPoptions(  const uint8_t *s , uint8_t optLen ) ;
-// void    printTCPoptions( const uint8_t *s , uint8_t optLen ) ;
+int readARPmap( char *arpDB );
+int writePCAPhdr( char *fname , pcap_hdr_t *p );
+void processRequestPacket( packetHdr_t *pktHdr, uint8_t ethFrame[] );
+uint16_t inet_checksum( void * data , uint16_t lenBytes );
 
 /*-------------------------------------------------------------------------*/
 /*               Suggested Utility Functions                               */
