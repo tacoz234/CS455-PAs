@@ -1,0 +1,14 @@
+Question 1: How do you decide that an Ethernet frame is targeting your machine?
+I decide if a frame is for my machine by checking its destination MAC address. If the MAC matches one of the physical addresses I loaded from my ARP mapping file, then it belongs to one of my virtual interfaces. I also accept any frames with the broadcast address ff:ff:ff:ff:ff:ff since those are intended for everyone on the local network.
+
+Question 2: Next, how do you determine that it's an ARP request asking about your machine's MAC address?
+Once I know the frame is for me (or is a broadcast), I check the Ethernet Type field to see if it's 0x0806, which identifies it as an ARP packet. If it's ARP, I look at the operation field to make sure it's an ARP Request (value 1). Then, I compare the "Target Protocol Address" in the ARP message with my own set of assigned IP addresses to see if anyone is asking specifically about me.
+
+Question 3: How do you determine it's a proper ICMP echo request targeting your machine?
+For ICMP, I first check that the Ethernet Type is 0x0800 (IPv4) and then verify that the IP Protocol byte is 1 (ICMP). I make sure the destination IP address in the IP header is one of mine. If these both of these are true, then I look at the first byte of the ICMP header; if it's type 8, I know it's an Echo Request.
+
+Question 4: Which fields of the outgoing packet's IP header need to be modified?
+To generate the reply, I have to swap the source and destination IP addresses so the packet goes back to the requester. I also update the Identification field using a sequential counter that starts at 1000 and increments for every reply. For the Header Checksum, I reset it to zero and then recalculate it because the IPs and ID have changed. In my implementation, I decided to preserve the Flags and fragmentation offset from the original request to maintain consistency with the incoming traffic, which helped in to pass the tests.
+
+Question 5: Do you need to recalculate the checksum of the IP header? of the ICMP message? or both?
+Both checksums need to be recalculated. The IP header checksum changes because I've modified the source/destination IPs and the Identification field. The ICMP checksum also changes because I change the Type field from 8 (Request) to 0 (Reply). I used a helper function to do both of these calculations by adding the 16-bit words and doing the one's complement.
