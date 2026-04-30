@@ -7,7 +7,7 @@
 		1- Cole Determan	
 		2- Ben Berry	
 		
-    Submitted on:   <PUT DATE  HERE >
+    Submitted on:   5/1/26
 **********************************************************************/
 
 #include    "myNetLib.h"
@@ -25,7 +25,7 @@ int main( int argc , char *argv[] )
 {
     int sd, sd_audit ;
     
-    char *developerName = "<WRITE_YOUR_NAME_HERE>" ;
+    char *developerName = "Cole Determan and Ben Berry" ;
     
     printf( "\n****  sub-Mirror Server **** by %s\n\n" , developerName ) ;
 
