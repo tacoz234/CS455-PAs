@@ -4,8 +4,8 @@
     FILE:   subMirror.c   SKELETON 
 
 	Code completed by:
-		1- Write Student Name(s)  Here	
-		2- Write Student Name(s)  Here	
+		1- Cole Determan	
+		2- Ben Berry	
 		
     Submitted on:   <PUT DATE  HERE >
 **********************************************************************/
@@ -19,11 +19,13 @@
  */
 
 
+#define CHUNK_SZ 1000
+
 int main( int argc , char *argv[] )
 {
     int sd, sd_audit ;
     
-    char *developerName = "MUST WRITE YOUR NAMES HERE (OR LOSE BIG POINTS)" ;
+    char *developerName = "<WRITE_YOUR_NAME_HERE>" ;
     
     printf( "\n****  sub-Mirror Server **** by %s\n\n" , developerName ) ;
 
@@ -37,44 +39,50 @@ int main( int argc , char *argv[] )
         exit(-1) ;
     }
 
-    sd        = /* .... */ ;  // client connected TCP socket from argv[1]
-    sd_audit  = /* .... */ ;  // Auditor UDP socket  from argv[2]
+    sd        = atoi( argv[1] ) ;  // client connected TCP socket from argv[1]
+    sd_audit  = atoi( argv[2] ) ;  // Auditor UDP socket  from argv[2]
+
+    struct sockaddr_in clientAddr;
+    socklen_t addrLen = sizeof( clientAddr );
+    if ( getpeername( sd , (SA *) &clientAddr , &addrLen ) < 0 )
+        err_sys( "getpeername failed" );
 
     { 
         // This block to be implemented in Phase Two
     
         audit_t  activity ;     // activity auditing
-        sd_audit  = atoi( argv[2] ) ;  // Auditor UDP socket
-    }
-
-    
-    // find out IP:Port of the client from
-    // the provided socket descriptors
         
+        unsigned char buf[ CHUNK_SZ ];
+        int nread;
+        while ( ( nread = Read( sd , buf , CHUNK_SZ ) ) > 0 )   // Loop until client closes socket
+        {
+            { 
+                // This block to be implemented in Phase Two
+            
+                // Report this receive activity to the Auditor
+                activity.op = received;
+                activity.nBytes = nread;
+                activity.ip = clientAddr.sin_addr.s_addr;
+                send( sd_audit , &activity , sizeof( audit_t ) , 0 );
+            }
+            
 
-      
-    while ( 1 )   // Loop until client closes socket
-    {
-        // Get a chunk of data from the client. Wisely choose which 
-        // variant of the read() wrappers to use here
+            // send all bytes received above back to the client
+            writen( sd , buf , nread );
 
 
-        { 
-            // This block to be implemented in Phase Two
-        
-            // Report this receive activity to the Auditor
-        }
-        
-
-        // send all bytes received above back to the client
-
-
-        { 
-            // This block to be implemented in Phase Two
-        
-            // Report this send activity to the Auditor
+            { 
+                // This block to be implemented in Phase Two
+            
+                // Report this send activity to the Auditor
+                activity.op = sent;
+                activity.nBytes = nread;
+                activity.ip = clientAddr.sin_addr.s_addr;
+                send( sd_audit , &activity , sizeof( audit_t ) , 0 );
+            }
         }
     }
 
     Close ( sd ) ;
+    return 0;
 }

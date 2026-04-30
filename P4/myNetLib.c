@@ -4,10 +4,10 @@
     FILE:   myNetLib.c   SKELETON
 	
 	Code completed by:
-		1- Write Student Name(s)  Here	
-		2- Write Student Name(s)  Here	
+		1- Cole Determan	
+		2- Ben Berry	
 		
-    Submitted on:   <PUT DATE  HERE >
+    Submitted on:   4/30/26
 **********************************************************************/
 
 #include    "myNetLib.h"
@@ -308,17 +308,28 @@ int socketUDP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
 	char   buff[ MAXSTRLEN ] , ipStr[ 20 ] ;
 
     /* Allocate a UDP socket */
-
-
-    // Missing Code 
-    
+    sd = socket( AF_INET, SOCK_DGRAM , IPPROTO_UDP ) ;
+    if( sd < 0)
+        err_sys( "\nsocketUDP() can't create a socket" ) ;
 
     // If desired by caller, bind to the provided Source Port
     // Usually a server does this, but a client may also do it
     if( s_port > 0 )
     {
+        struct sockaddr_in  localAddr;
 
-        // Missing Code 
+        memset( &localAddr , 0 , sizeof( struct sockaddr_in ) ) ;
+        localAddr.sin_family      = AF_INET ;
+        localAddr.sin_addr.s_addr = htonl( INADDR_ANY ) ;
+        localAddr.sin_port        = htons( s_port ) ;
+        inet_ntop( AF_INET, (void *) &localAddr.sin_addr.s_addr , ipStr , 20 ) ;
+
+        if( bind( sd , (SA *) &localAddr , sizeof( struct sockaddr_in ) ) < 0 )
+        {
+            snprintf( buff , MAXSTRLEN , "\n### socketUDP(): socket %d can't bind to local %s : %hu", 
+                      sd, ipStr , ntohs(localAddr.sin_port) ) ;
+            err_sys( buff ) ;    
+        }
 
         printf("UDP socket %u is bound to local %s : %hu\n" , 
                 sd , ipStr , ntohs(localAddr.sin_port) ) ;
@@ -328,9 +339,25 @@ int socketUDP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
     // The caller may do this to use this UDP socket with ONLY one specific remote host
     if( remoteIP != NULL  && d_port != 0 )
     {
+        struct sockaddr_in  remoteAddr ;
+        memset( &remoteAddr , 0 , sizeof( struct sockaddr_in ) ) ;
+        remoteAddr.sin_family = AF_INET;
+        remoteAddr.sin_port   = htons( d_port );
 
-        // Missing Code 
+        if( inet_pton( AF_INET, remoteIP , &remoteAddr.sin_addr ) <= 0)
+        {
+            snprintf( buff , MAXSTRLEN , "\ninet_pton error in '%s'" , remoteIP);
+            err_quit( buff );
+        }
+   
+        inet_ntop( AF_INET, (void *) &remoteAddr.sin_addr.s_addr , ipStr , 20 ) ;
 
+        if( connect( sd , (SA *) &remoteAddr , sizeof( struct sockaddr_in ) ) < 0 )
+        {
+            snprintf( buff , MAXSTRLEN , "\n### socketUDP():  can't connect socket %d to remote %s : %hu" ,
+                      sd , ipStr , ntohs(remoteAddr.sin_port) ) ;
+            err_sys( buff ) ;    
+        }
 
         printf("UDP socket %u is restricted to remote %s : %hu\n" , 
                 sd , ipStr , ntohs(remoteAddr.sin_port) ) ;

@@ -4,10 +4,10 @@
     FILE:   client.c   SKELETON
 
 	Code completed by:
-		1- Write Student Name(s)  Here	
-		2- Write Student Name(s)  Here	
+		1- Cole Determan
+		2- Ben Berry
 		
-    Submitted on:   <PUT DATE  HERE >
+    Submitted on:   4/30/26
 **********************************************************************/
 
 #include    "myNetLib.h"
@@ -51,21 +51,38 @@ int main( int argc , char *argv[] )
 
     // Open the input file name from argv
     // Then create a file by same name.copy
+    fd_in = open( inFile , O_RDONLY ) ;
+    if ( fd_in < 0 )
+        err_sys( "Can't open input file" ) ;
+
+    char copyName[ 100 ] ;
+    snprintf( copyName , 100 , "%s.copy" , inFile ) ;
+    fd_cpy = open( copyName , O_WRONLY | O_CREAT | O_TRUNC , 0644 ) ;
+    if ( fd_cpy < 0 )
+        err_sys( "Can't create copy file" ) ;
 
     // Create a local TCP socket with ephemeral port, and connect it to
     // the mirror server at  mirrorIP : MIRROR_TCP_PORT
 
     puts("") ;
-    sd_mirror = socketTCP( /* ... */  );
+    sd_mirror = socketTCP( 0 , mirrorIP , MIRROR_TCP_PORT );
+    
+    struct sockaddr_in mirrorAddr;
+    socklen_t addrLen = sizeof( mirrorAddr );
+    if ( getpeername( sd_mirror , (SA *) &mirrorAddr , &addrLen ) < 0 )
+        err_sys( "getpeername failed" );
+    char ipStr[ 20 ];
+    inet_ntop( AF_INET , &mirrorAddr.sin_addr , ipStr , 20 );
+
     printf("TCP Client is now connected to the TCP Mirror server %s : %hu\n" , 
-            ..... ) ;
+            ipStr, ntohs( mirrorAddr.sin_port ) ) ;
 
     { 
         // This block to be implemented in Phase Two
     
         // Use socketUDP() to created an ephemeral local UDP socket and restrict 
         // its peer to the Auditor server
-        sd_audit = socketUDP( /* .... */ ) ;
+        sd_audit = socketUDP( 0 , auditorIP , AUDITOR_UDP_PORT ) ;
     
     }
 
@@ -94,43 +111,58 @@ int main( int argc , char *argv[] )
 
 void mirrorFile( int in , int mirror , int copy , int audit )
 {
-    unsigned char buf[ CHUNK_SZ ] , buf2[ CHUNK_SZ ]  , str[MAXSTRLEN];
+    unsigned char buf[ CHUNK_SZ ] , buf2[ CHUNK_SZ ] ;
     audit_t  activity ; // This is for Phase Two
     struct sockaddr_in      mySocket, mirrorServer ;
-    int    alen ;
+    socklen_t    alen ;
     
     // Learn my IP:Port associated with 'mirror' 
+    alen = sizeof( mySocket );
+    if ( getsockname( mirror , (SA *) &mySocket , &alen ) < 0 )
+        err_sys( "getsockname failed" );
         
     // Learn the IP:Port of my peer on the other side of 'mirror'     
+    alen = sizeof( mirrorServer );
+    if ( getpeername( mirror , (SA *) &mirrorServer , &alen ) < 0 )
+        err_sys( "getpeername failed" );
         
+    int nread;
     // Repeat untill all data has been sent and received back
     // As this happens, save the received copy to the 'copy' file descriptor
-    while ( 1 )
+    while ( ( nread = Read( in , buf , CHUNK_SZ ) ) > 0 )
     {
         // Get up to CHUNK_SZ bytes from input file  and send ALL of what I get
         // to the 'mirror' socket
-
+        writen( mirror , buf , nread );
 
         { 
             // This block to be implemented in Phase Two
 
             // by setting the fields of 'activity'        
             // Report this sending activity to the Auditor
-        
+            activity.op = sent;
+            activity.nBytes = nread;
+            activity.ip = mirrorServer.sin_addr.s_addr;
+            if ( send( audit , &activity , sizeof( audit_t ) , 0 ) < 0 )
+                err_sys( "send to audit failed" );
         }
        
         // Now read from 'mirror' EXACTLY the same number of bytes I sent earlier
+        Readn( mirror , buf2 , nread );
 
         { 
             // This block to be implemented in Phase Two
         
             // Report this receiving activity to the Auditor
             // by setting the fields of 'activity'
-        
+            activity.op = received;
+            activity.nBytes = nread;
+            activity.ip = mirrorServer.sin_addr.s_addr;
+            if ( send( audit , &activity , sizeof( audit_t ) , 0 ) < 0 )
+                err_sys( "send to audit failed" );
         }
         
         // Finally, save a copy of what I received back to the 'copy' file
-        
+        writen( copy , buf2 , nread );
     }
-    
 }

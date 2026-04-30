@@ -4,10 +4,10 @@
     FILE:   auditor.c   SKELETON
 
 	Code completed by:
-		1- Write Student Name(s)  Here	
-		2- Write Student Name(s)  Here	
+		1- Cole Determan
+		2- Ben Berry
 		
-    Submitted on:   <PUT DATE  HERE >
+    Submitted on:   4/30/26
 **********************************************************************/
 
 #include    "myNetLib.h"
@@ -56,7 +56,7 @@ int main( int argc , char *argv[] )
     sd_audit = socketUDP( AUDITOR_UDP_PORT , NULL , 0 ) ;
 
     // Gracefully clean-up when receiving the SIGTERM signal
-    sigactionWrapper( /* ....  */ ) ; 
+    sigactionWrapper( SIGTERM , killHandler ) ; 
 
     snprintf( buff , REPO_SZ , "****  Auditor Server **** by %s has started\n" , developerName);
     printf( "\n### %s" , buff );
@@ -70,18 +70,18 @@ int main( int argc , char *argv[] )
         // Wait for data to arrive at the UDP socket & capture the Client's socket address
         // The expected data is an 'audit_t' object
         alen        = sizeof( cl_addr ) ;
-        if ( recvfrom( sd_audit, /* ....   */  ) < 0 )
+        if ( recvfrom( sd_audit, &activity , sizeof( audit_t ) , 0 , (SA *) &cl_addr , &alen ) < 0 )
             err_sys( "recvfrom" ) ;
 
         // Print the details of this activity, both to the stdout and to the log file
-        inet_ntop( AF_INET , /* Sender's IP address ++>> ipStr  */ ) ;
-        inet_ntop( AF_INET , /* IP address of the target of this activity ==>> ipStr2 */ ) ;
+        inet_ntop( AF_INET , &cl_addr.sin_addr , ipStr , 30 ) ;
+        inet_ntop( AF_INET , &activity.ip , ipStr2 , 30 ) ;
 
         snprintf( buff , REPO_SZ , "Activity By %-17s:%hu   ..."
                                    "  %9s  %8d Bytes. Peer's IP: %s" ,
-                                   ipStr , /* Sender's port number */ , 
-                                   /* Type of activity "Sent" or  "Received"  */ , 
-                                   /* number of bytes in activity */ , ipStr2 
+                                   ipStr , ntohs( cl_addr.sin_port ) , 
+                                   (activity.op == sent ? "Sent" : "Received") , 
+                                   activity.nBytes , ipStr2 
                 ) ;
         
         printf( "\n### %s\n" , buff );
