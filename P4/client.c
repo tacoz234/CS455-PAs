@@ -24,7 +24,7 @@ int main( int argc , char *argv[] )
          *auditorIP = AUDITOR_IP ,                  // Default Auditor Server
          *inFile    = "GoldilockAnd3Bears.txt" ;    // Default input file
 
-    char *developerName = "< WRITE YOUR_FULL_NAMES HERE >" ;
+    char *developerName = "Cole Determan & Ben Berry" ;
     
     printf( "\n****  Client **** by %s\n\n" , developerName ) ;
 

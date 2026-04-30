@@ -23,7 +23,7 @@ int main( int argc , char *argv[] )
     int     queLen = 10 ;           // Max #of pending connection requests
     struct sockaddr_in  cl_addr;    // the address of a client
 
-    char *developerName = "<WRITE_YOUR_NAME_HERE>" ;
+    char *developerName = "Cole Determan & Ben Berry" ;
     
     printf( "\n****  Mirror Server **** by %s\n\n" , developerName ) ;
 

@@ -36,12 +36,12 @@ int main( int argc , char *argv[] )
 
     unsigned            alen ;
     struct sockaddr_in  cl_addr;     // the address of a client
-    unsigned char       ipStr[30] , ipStr2[30] ;
+    char                ipStr[30] , ipStr2[30] ;
     audit_t             activity ;
     char                buff[REPO_SZ] , 
                        *outFile = "activityLog.txt";
 
-    char *developerName = "MUST  WRITE  YOUR  NAMES  HERE  OR  LOSE  BIG  POINTS" ;
+    char *developerName = "Cole Determan & Ben Berry" ;
     
     printf( "\n****  Auditor Server **** by %s\n\n" , developerName ) ;
 

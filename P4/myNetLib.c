@@ -83,6 +83,8 @@ int Listen(int sockfd, int backlog)
                   sockfd );
         err_sys( str ) ;
     }
+
+    return 0;
 }
 
 //------------------------------------------------------------
@@ -171,7 +173,7 @@ ssize_t readn( int fd, void *vptr, size_t n )
 }
 
 /*-------------------------------------------------------------------*/
-/* A wrapper for the above readn()
+/* A wrapper for the above readn() */
 /* Insist on reading exactly n bytes from fd, otherwise fail */
 
 ssize_t Readn( int fd, void *vptr, size_t n )
@@ -179,10 +181,11 @@ ssize_t Readn( int fd, void *vptr, size_t n )
 	if ( readn( fd, vptr, n) != n )
 		err_quit("\nReadn short-count , encountered EOF too soon.");
 
+    return n;
 }
 
 /*-------------------------------------------------------------------*/
-/* A wrapper for the write() sometimes-slow system call. 
+/* A wrapper for the write() sometimes-slow system call. */
 /* Insist on writing exactly nbytes to fd, otherwise fail */
 
 ssize_t	writen( int fd, const void *vptr, size_t n )
@@ -254,7 +257,7 @@ int socketTCP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
             err_sys( buff ) ;    
         }
         
-        printf("\n### socketTCP(): TCP socket %u is bound to local %s : %hu\n" , sd, 
+        printf("\n### socketTCP(): TCP socket %d is bound to local %s : %hu\n" , sd, 
                 ipStr, ntohs(localAddr.sin_port) );
     }
 
@@ -283,7 +286,7 @@ int socketTCP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
             err_sys( buff ) ;    
         }
 
-        printf( "\n### socketTCP(): TCP socket %u is connected to remote %s : %hu\n" 
+        printf( "\n### socketTCP(): TCP socket %d is connected to remote %s : %hu\n" 
                 , sd , ipStr , ntohs( remoteAddr.sin_port ) 
               );
     }
@@ -331,7 +334,7 @@ int socketUDP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
             err_sys( buff ) ;    
         }
 
-        printf("UDP socket %u is bound to local %s : %hu\n" , 
+        printf("UDP socket %d is bound to local %s : %hu\n" , 
                 sd , ipStr , ntohs(localAddr.sin_port) ) ;
     }
 
@@ -359,7 +362,7 @@ int socketUDP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
             err_sys( buff ) ;    
         }
 
-        printf("UDP socket %u is restricted to remote %s : %hu\n" , 
+        printf("UDP socket %d is restricted to remote %s : %hu\n" , 
                 sd , ipStr , ntohs(remoteAddr.sin_port) ) ;
     }
 
