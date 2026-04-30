@@ -286,7 +286,7 @@ int socketTCP( uint16_t s_port , const char *remoteIP, uint16_t d_port )
             err_sys( buff ) ;    
         }
 
-        printf( "\n### socketTCP(): TCP socket %d is connected to remote %s : %hu\n" 
+        printf( "\nTCP socket %d is connected to remote %s : %hu\n" 
                 , sd , ipStr , ntohs( remoteAddr.sin_port ) 
               );
     }

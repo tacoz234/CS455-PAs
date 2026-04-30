@@ -1,27 +1,13 @@
-### ****  Auditor Server **** by ABOUTABL (the REFERENCE Code) has started
-### Activity By 192.168.2.2      :33887   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.22     :49719   ...   Received      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.22     :49719   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.2      :33887   ...   Received      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.2      :33887   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.22     :49719   ...   Received      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.22     :49719   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.2      :33887   ...   Received      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.2      :33887   ...       Sent       402 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.22     :49719   ...   Received       402 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.22     :49719   ...       Sent       402 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.2      :33887   ...   Received       402 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.2      :36516   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.22     :49719   ...   Received      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.22     :49719   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.2      :36516   ...   Received      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.2      :36516   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.22     :49719   ...   Received      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.22     :49719   ...       Sent      1000 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.2      :36516   ...   Received      1000 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.2      :36516   ...       Sent       489 Bytes. Peer's IP: 192.168.2.22
-### Activity By 192.168.2.22     :49719   ...   Received       489 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.22     :49719   ...       Sent       489 Bytes. Peer's IP: 192.168.2.2
-### Activity By 192.168.2.2      :36516   ...   Received       489 Bytes. Peer's IP: 192.168.2.22
-
-Auditor is now closing
+### ****  Auditor Server **** by Cole Determan & Ben Berry has started
+### Activity By 127.0.0.1        :58582   ...       Sent      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :65015   ...   Received      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :65015   ...       Sent      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :58582   ...   Received      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :58582   ...       Sent      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :65015   ...   Received      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :65015   ...       Sent      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :58582   ...   Received      1000 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :58582   ...       Sent       402 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :65015   ...   Received       402 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :65015   ...       Sent       402 Bytes. Peer's IP: 127.0.0.1
+### Activity By 127.0.0.1        :58582   ...   Received       402 Bytes. Peer's IP: 127.0.0.1
